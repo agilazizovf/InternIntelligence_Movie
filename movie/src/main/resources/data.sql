@@ -19,15 +19,32 @@ CREATE TABLE user_authorities (
                                   PRIMARY KEY (user_id, authority_name)
 );
 
+CREATE TABLE genres (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL UNIQUE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+                        user_id INT,
+                        CONSTRAINT fk_genre_user FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 CREATE TABLE movies (
-                                      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                      id INT AUTO_INCREMENT PRIMARY KEY,
                                       title VARCHAR(255) NOT NULL,
                                       director VARCHAR(255),
                                       release_year DATE,
-                                      genre VARCHAR(255),
                                       imdb VARCHAR(255),
-                                      user_id BIGINT,
+                                      user_id INT,
                                       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+-- Create movie_genre relationship table
+CREATE TABLE movie_genre (
+                             movie_id INT NOT NULL,
+                             genre_id INT NOT NULL,
+                             PRIMARY KEY (movie_id, genre_id),
+                             FOREIGN KEY (movie_id) REFERENCES movies (id),
+                             FOREIGN KEY (genre_id) REFERENCES genres (id)
 );
 
 insert into authorities(name)
@@ -43,9 +60,16 @@ values (1, 'USER'),
 (2, 'USER'),
 (3, 'USER');
 
-INSERT INTO movies (title, director, release_year, genre, imdb, user_id) VALUES
-('Inception', 'Christopher Nolan', '2010-07-16', 'Science Fiction', '8.8', 1),
-('Lucifer', 'Francis Ford Coppola', '1972-03-24', 'Crime', '9.2', 2),
-('Pulp Fiction', 'Quentin Tarantino', '1994-10-14', 'Crime', '8.9', 1),
-('The Dark Knight', 'Christopher Nolan', '2008-07-18', 'Action', '9.0', 2),
-('IT', 'Steven King', '2017-07-18', 'Action', '9.0', 3);
+INSERT INTO genres (name, user_id) VALUES ('Action', 1),
+                                          ('Comedy', 1),
+                                          ('Drama', 2);
+
+INSERT INTO movies (title, director, release_year, IMDb, user_id)
+VALUES ('Inception', 'Christopher Nolan', '2010-07-16', '8.8', 1),
+('The Dark Knight', 'Christopher Nolan', '2008-07-18', '9.0', 1),
+('Forrest Gump', 'Robert Zemeckis', '1994-07-06', '8.8', 2);
+
+INSERT INTO movie_genre (movie_id, genre_id) VALUES
+                                                 (1, 1),
+(2, 1),-- The Dark Knight, Action
+(3, 3); -- Forrest Gump, Drama

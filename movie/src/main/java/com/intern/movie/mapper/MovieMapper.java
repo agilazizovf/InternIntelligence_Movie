@@ -10,7 +10,6 @@ public class MovieMapper {
         response.setId(movie.getId());
         response.setTitle(movie.getTitle());
         response.setDirector(movie.getDirector());
-        response.setGenre(movie.getGenre());
         response.setIMDb(movie.getIMDb());
         response.setReleaseYear(movie.getReleaseYear());
         return response;

@@ -4,6 +4,7 @@ import com.intern.movie.entity.UserEntity;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class MovieResponse {
@@ -12,6 +13,6 @@ public class MovieResponse {
     private String title;
     private String director;
     private LocalDate releaseYear;
-    private String genre;
     private String IMDb;
+    private List<String> genres;
 }

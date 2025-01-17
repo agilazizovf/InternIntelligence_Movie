@@ -1,5 +1,6 @@
 package com.intern.movie.service.impl;
 
+import com.intern.movie.entity.GenreEntity;
 import com.intern.movie.entity.MovieEntity;
 import com.intern.movie.entity.UserEntity;
 import com.intern.movie.mapper.MovieMapper;
@@ -8,6 +9,7 @@ import com.intern.movie.model.dto.response.MovieResponse;
 import com.intern.movie.model.dto.response.PageResponse;
 import com.intern.movie.model.exception.AuthenticationException;
 import com.intern.movie.model.exception.ResourceNotFoundException;
+import com.intern.movie.repository.GenreRepository;
 import com.intern.movie.repository.MovieRepository;
 import com.intern.movie.repository.UserRepository;
 import com.intern.movie.service.MovieService;
@@ -32,15 +34,24 @@ import java.util.stream.Collectors;
 public class MovieServiceImpl implements MovieService {
 
     private final UserRepository userRepository;
+    private final GenreRepository genreRepository;
     private final MovieRepository movieRepository;
     private final ModelMapper modelMapper;
     @Override
     public ResponseEntity<MovieResponse> create(MovieRequest request) {
         UserEntity user = getCurrentUser();
 
+        // Fetch all genres provided in the request
+        List<GenreEntity> genres = request.getGenreIds()
+                .stream()
+                .map(id -> genreRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Genre with ID " + id + " not found!")))
+                .collect(Collectors.toList());
+
         MovieEntity movie = new MovieEntity();
         modelMapper.map(request, movie);
         movie.setUser(user);
+        movie.setGenre(genres);
         movieRepository.save(movie);
 
         log.info("movie: {} created successfully!", movie.getTitle());
@@ -58,8 +69,16 @@ public class MovieServiceImpl implements MovieService {
 
         List<MovieResponse> responses = movieEntities
                 .stream()
-                .map(MovieMapper::toMovieDTO)
+                .map(movie -> {
+                    MovieResponse response = new MovieResponse();
+                    modelMapper.map(movie, response);
+                    response.setGenres(movie.getGenre().stream()
+                            .map(GenreEntity::getName)
+                            .collect(Collectors.toList()));
+                    return response;
+                })
                 .collect(Collectors.toList());
+
 
         PageResponse<MovieResponse> pageResponse = new PageResponse<>();
         pageResponse.setContent(responses);
@@ -80,6 +99,9 @@ public class MovieServiceImpl implements MovieService {
 
         MovieResponse response = new MovieResponse();
         modelMapper.map(movie, response);
+        response.setGenres(movie.getGenre().stream()
+                .map(GenreEntity::getName)
+                .collect(Collectors.toList()));
         return ResponseEntity.status(HttpStatus.FOUND).body(response);
     }
 
@@ -93,7 +115,15 @@ public class MovieServiceImpl implements MovieService {
         if (!movie.getUser().equals(user)) {
             throw new AuthenticationException("You do not have permission to update this movie");
         }
+        // Fetch all genres provided in the request
+        List<GenreEntity> genres = request.getGenreIds()
+                .stream()
+                .map(genreId -> genreRepository.findById(genreId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Genre with ID " + genreId + " not found!")))
+                .collect(Collectors.toList());
+
         modelMapper.map(request, movie);
+        movie.setGenre(genres); // Update genres
         movieRepository.save(movie);
 
         log.info("movie: {} updated successfully!", movie.getTitle());

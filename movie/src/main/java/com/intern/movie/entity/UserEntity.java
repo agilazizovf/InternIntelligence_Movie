@@ -31,6 +31,10 @@ public class UserEntity {
     private List<MovieEntity> movies;
 
     @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<GenreEntity> genres;
+
+    @JsonIgnore
     @ManyToMany
     @JoinTable(name = "user_authorities",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
