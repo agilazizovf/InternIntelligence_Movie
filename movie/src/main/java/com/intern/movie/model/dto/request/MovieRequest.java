@@ -21,7 +21,6 @@ public class MovieRequest {
     @PastOrPresent(message = "Release year must be in the past or present.")
     private LocalDate releaseYear;
 
-    @Pattern(regexp = "tt\\d{7,8}", message = "IMDb must be in a valid format, e.g., tt1234567.")
     private String IMDb;
 
     @NotEmpty(message = "At least one genre ID must be provided.")
